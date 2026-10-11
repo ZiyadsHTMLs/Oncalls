@@ -51,6 +51,7 @@ button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}
 <li>يتم إبلاغ الأخصائي المناوب بطبيعة المعاملة والخطاب خاصة إن كان المريض بحاجة للتنويم.</li>
 <li>يمنع كتابة أي تشخيص بالتقرير، فقط وصف لحالة المريض بالوقت الراهن.</li>
 <li>يمنع كتابة التقرير في حال عدم وجود التقرير بالنظام في خانة Attached Files.</li>
+<li>يرجى قراءة التقرير جيداً وقراءة العناصر المطلوبة منه بدقة لكي يتم الرد بشكل محدد.</li>
 </ul>
 </div>
 
@@ -70,6 +71,7 @@ button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}
 <div class="card">
 <h3>المناظرة (الحالة الراهنة)</h3>
 <label class="opt"><input type="radio" name="state" value="calm" checked><span>هادئ ومتعاون ولا يظهر معه أعراض ذهانية أو سلوكيات مضطربة</span></label>
+<label class="opt"><input type="radio" name="state" value="uncoop"><span>يظهر على المريض أنه غير متعاون ولا يمكن تقييمه حالياً</span></label>
 <label class="opt"><input type="radio" name="state" value="agit"><span>مضطرب وتظهر عليه أعراض</span></label>
 <div class="sub-opts" id="symp">
 <label class="opt"><input type="checkbox" name="sym" value="أعراض ذهانية"><span>أعراض ذهانية</span></label>
@@ -94,6 +96,15 @@ button.sec{background:transparent;color:var(--tx);border:1px solid var(--bd)}
 <label class="opt"><input type="radio" name="proc" value="for"><span>يحتاج للتنويم بالقسم الجنائي</span></label>
 <hr style="border:0;border-top:1px solid var(--bd);margin:10px 0">
 <label class="opt"><input type="checkbox" id="family"><span>نحتاج لإحضار ذويه لاستكمال التقييم</span></label>
+</div>
+
+<div class="card">
+<label class="opt"><input type="checkbox" id="travel"><span><b>السفر</b> (اختياري)</span></label>
+<div class="sub-opts" id="trv">
+<label class="opt"><input type="radio" name="trv" value="ok" checked><span>المريض يتحمل السفر</span></label>
+<label class="opt"><input type="radio" name="trv" value="cond"><span>المريض يتحمل السفر بشرط ضرورة الاستمرار على العلاج الموصوف</span></label>
+<label class="opt"><input type="radio" name="trv" value="no"><span>المريض لا يتحمل السفر حالياً بسبب اضطرابه</span></label>
+</div>
 </div>
 
 <div class="card">
@@ -122,7 +133,9 @@ function build(){
   L.push('حضر المريض '+name+' برفقة الجهات الأمنية للطوارئ للتقييم برقم تقرير '+num+'.');
   L.push(val('file')==='has'?'المريض له ملف سابق بالمستشفى.':'المريض ليس له ملف سابق بالمستشفى.');
   var s;
-  if(val('state')==='calm'){
+  if(val('state')==='uncoop'){
+    s='بمناظرة المريض يظهر عليه أنه غير متعاون ولا يمكن تقييمه حالياً.';
+  }else if(val('state')==='calm'){
     s='بمناظرة المريض تبين أنه هادئ ومتعاون ولا يظهر معه أعراض ذهانية أو سلوكيات مضطربة.';
   }else{
     var sy=[].slice.call(document.querySelectorAll('input[name=sym]:checked')).map(function(e){return e.value});
@@ -134,10 +147,15 @@ function build(){
   var P={none:'لم يتم صرف أي أدوية للمريض.',med:'تم صرف العلاج اللازم مع ضرورة المتابعة بالعيادات الخارجية.',adm:'يحتاج للتنويم بالقسم الداخلي.','for':'يحتاج للتنويم بالقسم الجنائي.'};
   L.push('الإجراء: '+P[val('proc')]);
   if($('#family').checked)L.push('نحتاج لإحضار ذويه لاستكمال التقييم.');
+  if($('#travel').checked){
+    var T={ok:'المريض يتحمل السفر.',cond:'المريض يتحمل السفر بشرط ضرورة الاستمرار على العلاج الموصوف.',no:'المريض لا يتحمل السفر حالياً بسبب اضطرابه.'};
+    L.push(T[val('trv')]);
+  }
   return L.join('\n');
 }
 function refresh(){
   $('#symp').classList.toggle('show',val('state')==='agit');
+  $('#trv').classList.toggle('show',$('#travel').checked);
   out.value=build();
 }
 function upd(){copyBtn.disabled=!ok.checked||!out.value.trim()}
