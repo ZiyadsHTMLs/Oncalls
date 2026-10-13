@@ -102,14 +102,14 @@ function rd(){[1,0].forEach(g=>{$("d"+g).innerHTML=docs.map((x,i)=>x.j!=g?"":`<t
 document.addEventListener("change",e=>{const t=e.target,k=t.dataset.k;if(!k)return;docs[t.dataset.i][k]=k=="pw"?+t.value||0:t.value;if(k=="st")t.closest("tr").className=t.value+(docs[t.dataset.i].nw?" nw":"");save()});
 $("mo").value=month;$("ipg").value=ipg0;$("ipg").onchange=save;$("mo").onchange=e=>{month=e.target.value;save()};
 function dim(){const[y,m]=month.split("-").map(Number);return{y,m,N:new Date(y,m,0).getDate(),dow:d=>new Date(y,m-1,d).getDay()}}
-const SP=["Omnia","Ziyad"],KS=["mo","e1","e2","s","ip"];
+const R2D=1,SP=["Omnia","Ziyad"],KS=["mo","e1","e2","s","ip"];
 function solve(){
  const{N,dow}=dim(),ipj=+$("ipg").value;
  docs.forEach(x=>x.s=pd(x.ld));
  const tot={},we={},sh={};docs.forEach(x=>{tot[x.n]=0;we[x.n]=x.pw;sh[x.n]=[]});
  const rows=[];for(let d=1;d<=N;d++)rows.push({d,dow:dow(d),mo:"",e1:"",e2:"",s:"",ip:""});
  const give=(r,k,x)=>{r[k]=x.n;tot[x.n]++;sh[x.n].push(r.d);if(r.dow>=4)we[x.n]++};
- const av=(x,d)=>x.st=="av"&&!x.s.has(d),adj=x=>tot[x.n]+(SP.includes(x.n)?1:0);
+ const av=(x,d)=>x.st=="av"&&!x.s.has(d),adj=x=>tot[x.n]+(SP.includes(x.n)?1:0)+(x.j==1&&x.l=="R2"?R2D:0);
  const gp=(x,d)=>sh[x.n].reduce((m,s)=>Math.min(m,Math.abs(d-s)),99);
  const mp=new Set();let cost=0;
  rows.filter(r=>r.dow>=5).forEach(r=>{const c=docs.filter(x=>x.j==1&&av(x,r.d)&&!mp.has(x.n)).map(x=>({x,s:we[x.n]*10+Math.random()*6})).sort((a,b)=>a.s-b.s)[0];if(c){give(r,"mo",c.x);mp.add(c.x.n)}else cost+=1000});
@@ -128,7 +128,7 @@ function solve(){
  docs.forEach(x=>{const a=[...sh[x.n]].sort((p,q)=>p-q);for(let i=1;i<a.length;i++){const g=a[i]-a[i-1];if(g<3)cost+=300;else if(g<4)cost+=30}});
  const va=v=>{const m=v.reduce((p,c)=>p+c,0)/(v.length||1);return v.reduce((p,c)=>p+(c-m)**2,0)};
  [1,0].forEach(l=>{const g=docs.filter(x=>x.j==l&&x.st=="av");cost+=va(g.map(adj))*4+va(g.filter(x=>!mp.has(x.n)&&x.n!="Nouran").map(x=>we[x.n]))*2});
- {const jg=docs.filter(x=>x.j==1&&x.st=="av"),ja=jg.reduce((p,x)=>p+tot[x.n],0)/(jg.length||1);SP.forEach(n=>{const x=byN(n);if(x&&x.st=="av")cost+=(tot[n]-(ja-1))**2*6})}
+ {const jg=docs.filter(x=>x.j==1&&x.st=="av"),m=g=>g.reduce((p,x)=>p+tot[x.n],0)/(g.length||1),g1=jg.filter(x=>x.l=="R1"),g2=jg.filter(x=>x.l=="R2"),ra=g1.length?m(g1):m(jg);SP.forEach(n=>{const x=byN(n);if(x&&x.st=="av")cost+=(tot[n]-(ra-R2D-1))**2*6});if(g1.length&&g2.length)cost+=Math.max(0,m(g2)-(ra-R2D))**2*40}
  return{rows,cost};
 }
 function gen(){let best=null;for(let i=0;i<250;i++){const r=solve();if(!best||r.cost<best.cost)best=r}SCH=best.rows;show()}
@@ -148,7 +148,7 @@ function show(){
   if(t){bad++;iss.push({d:r.d,w:r.dow,k,n,t,g:isg})}return[t?"bad":"",t]};
  const sel=(r,k,l)=>{const[c,t]=cls(r,k);return`<td class="${c}" title="${t}"><select data-r="${SCH.indexOf(r)}" data-c="${k}">${opt(l,r[k])}</select></td>`};
  $("out").innerHTML=`<thead><tr><th>Day</th><th>Date</th><th>Morning</th><th>Evening1</th><th>Evening2</th><th>Senior</th><th>Inpatient</th></tr></thead><tbody>`+SCH.map(r=>{const w=r.dow>=5;
-  return`<tr class="${w?"we":""}"><td>${DN[r.dow]}</td><td>${r.d}</td>${w?sel(r,"mo",1):`<td class="mc">${M}</td>`}${sel(r,"e1",1)}${sel(r,"e2",1)}${sel(r,"s",0)}${w?sel(r,"ip",ipj):"<td></td>"}</tr>`}).join("")+`</tbody>`;
+  return`<tr class="${w?"we":""}"><td>${DN[r.dow]}</td><td>${r.d}</td>${w?sel(r,"mo",1):r.dow==4?"<td></td>":`<td class="mc">${M}</td>`}${sel(r,"e1",1)}${sel(r,"e2",1)}${sel(r,"s",0)}${w?sel(r,"ip",ipj):"<td></td>"}</tr>`}).join("")+`</tbody>`;
  $("msg").textContent=`${MN[m-1]} ${y}، ${bad} خلية تحتاج مراجعة (تعارض أو فاصل أقل من ٤ أيام)`;
  stats();notes(iss);
 }
@@ -163,7 +163,7 @@ $("xl").onclick=()=>{
  if(!SCH.length){alert("ولّد الجدول أولاً");return}
  const M=docs.filter(x=>x.st=="mo").map(x=>x.n).join(" + "),{y,m}=dim(),{t,w}=counts();
  const a=[[`Duty Roster - ${MN[m-1]} ${y}`],[],["Day","Date","Morning","Evening1","Evening2","Senior","Inpatient"],
- ...SCH.map(r=>[DN[r.dow],r.d,r.dow>=5?r.mo:M,r.e1,r.e2,r.s,r.dow>=5?r.ip:""]),[],["Name","Level","Total shifts","Weekend shifts (Thu-Sat)"],
+ ...SCH.map(r=>[DN[r.dow],r.d,r.dow>=5?r.mo:r.dow==4?"":M,r.e1,r.e2,r.s,r.dow>=5?r.ip:""]),[],["Name","Level","Total shifts","Weekend shifts (Thu-Sat)"],
  ...docs.map(x=>[x.n+(x.st=="mo"?" (morning)":x.st=="le"?" (leave)":""),x.l,t[x.n],w[x.n]])];
  const ws=XLSX.utils.aoa_to_sheet(a);ws["!cols"]=[{wch:22},{wch:8},{wch:24},{wch:18},{wch:18},{wch:14},{wch:14}];
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Roster");XLSX.writeFile(wb,`Duty_Roster_${month}.xlsx`)};
@@ -180,11 +180,13 @@ function notes(iss){
  const g2=[];SCH.forEach(r=>{const m=(r.dow>=5?["mo","e1","e2","s","ip"]:["e1","e2","s"]).filter(k=>!r[k]);if(m.length)g2.push(`يوم ${D(r)}: ${m.map(k=>L[k]).join("، ")}`)});
  // 3) عدم مزج R1 مع R2
  const g3=[];SCH.forEach(r=>{if(!r.e1||!r.e2)return;const a=byN(r.e1),b=byN(r.e2);if(a&&b&&a.l==b.l)g3.push(`يوم ${D(r)}: ${a.l} + ${b.l} (${B(a.n)}، ${B(b.n)})`)});
- // 4) Omnia وZiyad مقابل متوسط الجونيورز
- const jv=docs.filter(x=>x.j==1&&x.st=="av"),ja=jv.reduce((p,x)=>p+t[x.n],0)/(jv.length||1);
- const g4=SP.map(n=>{const x=byN(n);if(!x)return null;if(x.st!="av")return`${B(n)}: غير متاح للمناوبة هذا الشهر (${x.st=="mo"?"صباحي":"إجازة"})`;const d=t[n]-ja;return`${B(n)}: ${t[n]} مناوبة، متوسط الجونيورز المتاحين ${ja.toFixed(1)} (الفرق ${d>0?"+":""}${d.toFixed(1)}، المستهدف تقريباً −1)`}).filter(Boolean);
- // 5) أطباء بفارق مناوبتين أو أكثر عن المتوسط
- const g5=[];[1,0].forEach(l=>{const g=docs.filter(x=>x.j==l&&x.st=="av");if(!g.length)return;const av=g.reduce((p,x)=>p+t[x.n],0)/g.length;g.forEach(x=>{const d=t[x.n]-av;if(Math.abs(d)>=2)g5.push(`${B(x.n)} (${x.l}): ${t[x.n]} مناوبة، ${d>0?"أكثر":"أقل"} من متوسط ${l?"الجونيورز":"السينيورز"} (${av.toFixed(1)}) بفارق ${Math.abs(d).toFixed(1)}`)})});
+ // 4) متوسط R1 وR2 وOmnia/Ziyad
+ const av_=g=>g.reduce((p,x)=>p+t[x.n],0)/(g.length||1),sg=v=>(v>0?"+":"")+v.toFixed(1),
+ jv=docs.filter(x=>x.j==1&&x.st=="av"),ja=av_(jv),r1=jv.filter(x=>x.l=="R1"),r2=jv.filter(x=>x.l=="R2"),a1=av_(r1),a2=av_(r2),g4=[];
+ if(r1.length&&r2.length)g4.push(`متوسط R1: ${a1.toFixed(1)}، متوسط R2: ${a2.toFixed(1)} — ${a2<a1?"✓ R2 أقل من R1":"⚠ لم يتحقق: متوسط R2 ليس أقل من R1"}`);
+ SP.forEach(n=>{const x=byN(n);if(!x)return;if(x.st!="av"){g4.push(`${B(n)}: غير متاح للمناوبة هذا الشهر (${x.st=="mo"?"صباحي":"إجازة"})`);return}g4.push(`${B(n)}: ${t[n]} مناوبة، متوسط الجونيورز ${ja.toFixed(1)} (${sg(t[n]-ja)})${r2.length?`، متوسط R2 ${a2.toFixed(1)} (${sg(t[n]-a2)})`:""}`)});
+ // 5) أطباء بفارق مناوبتين أو أكثر عن متوسط مستواهم
+ const g5=[];[[docs.filter(x=>x.j==1&&x.l=="R1"),"R1"],[docs.filter(x=>x.j==1&&x.l=="R2"),"R2"],[docs.filter(x=>x.j==0),"السينيورز"]].forEach(([a,nm])=>{const g=a.filter(x=>x.st=="av");if(!g.length)return;const av=av_(g);g.forEach(x=>{const d=t[x.n]-av;if(Math.abs(d)>=2)g5.push(`${B(x.n)} (${x.l}): ${t[x.n]} مناوبة، ${d>0?"أكثر":"أقل"} من متوسط ${nm} (${av.toFixed(1)}) بفارق ${Math.abs(d).toFixed(1)}`)})});
  // 6) صباح الويكند / Inpatient / Nouran  + 7) تعارضات أخرى
  const rs=iss.filter(i=>!i.g),m6=rs.filter(i=>i.k=="mo"||i.k=="ip"||i.n=="Nouran"),m7=rs.filter(i=>!m6.includes(i));
  const f=i=>`يوم ${i.d} (${DN[i.w]}) — ${L[i.k]}: ${B(i.n)} — ${esc(i.t)}`;
@@ -195,8 +197,8 @@ function notes(iss){
   sec("فواصل أقل من ٤ أيام بين مناوبتي الطبيب",g1)+
   sec("خانات لم يُوجد من يغطيها",g2)+
   sec("أيام لم يتحقق فيها مزج R1 مع R2 في المسائي",g3)+
-  sec("Omnia وZiyad مقارنة بمتوسط الجونيورز",g4,1)+
-  sec("أطباء بفارق مناوبتين أو أكثر عن المتوسط",g5)+
+  sec("متوسط R1 وR2، وOmnia وZiyad مقارنة بالمتوسط",g4,1)+
+  sec("أطباء بفارق مناوبتين أو أكثر عن متوسط مستواهم",g5)+
   sec("صباح الويكند / Inpatient / Nouran",g6)+
   (m7.length?sec("تعارضات أخرى (غير متاح، تكرار في نفس اليوم)",m7.map(f)):"");
 }
